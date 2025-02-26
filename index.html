@@ -11,9 +11,9 @@
   <style>
     /* تعريف ألوان متجر كوزمتك */
     :root {
-      --primary-color: #E91E63;   /* وردي حيوي */
-      --secondary-color: #9C27B0; /* بنفسجي */
-      --accent-color: #FF4081;    /* وردي فاتح */
+      --primary-color: #7b034d;   /* وردي حيوي */
+      --secondary-color: #e2098f; /* بنفسجي */
+      --accent-color: #f15489;    /* وردي فاتح */
       --background: #FCE4EC;      /* خلفية وردية فاتحة */
       --sidebar-bg: #ffffff;
       --modal-bg: rgba(0, 0, 0, 0.7);
@@ -491,6 +491,30 @@
     .admin-section h3 {
       margin-bottom: 0.5rem;
     }
+
+
+    /* تحسينات للوضع الليلي */
+body.dark-mode .sidebar {
+  background: #34495e;
+}
+body.dark-mode .sidebar .menu-item span.label {
+  color: #ecf0f1;
+}
+body.dark-mode .sidebar .menu-item svg {
+  fill: #ecf0f1;
+}
+body.dark-mode .product-card {
+  background: #34495e;
+  color: #ecf0f1;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+}
+body.dark-mode .product-card .product-details {
+  color: #c7bdbd;
+}
+body.dark-mode .product-card .product-price {
+  color: var(--primary-color);
+}
+
   </style>
 </head>
 <body>
