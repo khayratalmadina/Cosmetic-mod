@@ -494,7 +494,30 @@
     .admin-section h3 {
       margin-bottom: 0.5rem;
     }
-    
+    /* إضافة تنسيق للنوافذ المنبثقة الخاصة بلوحة الإدارة */
+    #admin-modal .admin-content {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease;
+    }
+    #admin-modal .admin-content:hover {
+      transform: scale(1.02);
+    }
+
+    /* تحسين تنسيق نماذج الإدخال في لوحة الإدارة */
+    #admin-modal input,
+    #admin-modal textarea {
+      width: 100%;
+      border: 1px solid #ccc;
+      padding: 0.5rem;
+      border-radius: 5px;
+      margin-bottom: 1rem;
+    }
+
+    /* تخصيص ألوان الوضع الليلي للوحات الإدارة */
+    body.dark-mode #admin-modal .admin-content {
+      background: #2c3e50;
+      color: #ecf0f1;
+    }
     
     /* تحسينات للوضع الليلي */
     body.dark-mode .sidebar {
@@ -616,6 +639,19 @@
       <button class="modal-close" id="favorites-modal-close">&times;</button>
       <div id="favorites-content"></div>
     </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="clear-favorites">حذف جميع المفضلات</button>
+    </div>
+    <script>
+      document.getElementById("clear-favorites").addEventListener("click", function() {
+        if (confirm("هل أنت متأكد من حذف جميع المفضلات؟")) {
+          savedProducts = [];
+          localStorage.setItem("savedProducts", JSON.stringify(savedProducts));
+          document.getElementById("favorites-content").innerHTML = '<div class="modal-header"><h4>لا توجد منتجات محفوظة</h4></div>';
+          document.querySelectorAll(".save-btn.active").forEach(btn => btn.classList.remove("active"));
+        }
+      });
+    </script>
   </div>
   <div class="modal-overlay" id="most-sold-modal">
     <div class="modal-content" id="most-sold-modal-content">
@@ -668,6 +704,39 @@
   <br>
   <br><br>
   <script>
+    (function(){
+      // إنشاء أيقونة الإدارة وإضافتها إلى الشريط الجانبي
+      const sidebar = document.getElementById('sidebar');
+      let adminIcon = document.createElement('div');
+      adminIcon.id = 'admin-icon';
+      adminIcon.title = 'إدارة المنتجات';
+      adminIcon.style.cursor = 'pointer';
+      adminIcon.style.marginTop = 'auto';
+      adminIcon.style.padding = '0.8rem';
+      adminIcon.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 2a10 10 0 00-7.07 17.07A10 10 0 1012 2zm1 14.93h-2v-2h2v2zm0-4h-2V7h2v5.93z" fill="var(--primary-color)"/></svg>';
+      adminIcon.style.display = 'none';
+      sidebar.appendChild(adminIcon);
+
+      // دالة لتحديث ظهور الأيقونة بحسب حالة الشريط (ممدود أو غير ممدود)
+      function updateAdminIconVisibility() {
+        adminIcon.style.display = sidebar.classList.contains('expanded') ? 'block' : 'none';
+      }
+      
+      // راقب تغيير صفات الشريط الجانبي حتى يتم تحديث ظهور أيقونة الإدارة
+      const observer = new MutationObserver(updateAdminIconVisibility);
+      observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
+      
+      // عند النقر على أيقونة الإدارة تظهر مطالبة لإدخال الرمز
+      adminIcon.addEventListener('click', function(e){
+        e.stopPropagation();
+        const code = prompt("أدخل رمز الإدارة:");
+        if(code === "220016") {
+          document.getElementById("admin-modal").classList.add("active");
+        } else {
+          alert("رمز غير صحيح");
+        }
+      });
+    })();
     // إعدادات Firebase باستخدام بيانات مشروعك
     const firebaseConfig = {
       apiKey: "AIzaSyBcx6uXHzMK1HInEuFAmqsSBFvPAw86_Ts",
