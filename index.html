@@ -951,10 +951,38 @@
       }
       const whatsappNumber = "9647824130002";
       const url = `https://wa.me/${whatsappNumber}?text=${message}`;
+
+      // تحديث عداد الطلبات المحلي
       let orderCount = parseInt(localStorage.getItem("orderCount") || "0");
       orderCount++;
       localStorage.setItem("orderCount", orderCount);
       document.getElementById("order-count").textContent = orderCount;
+      
+      // حفظ بيانات الطلب في مجموعة "orders" بقاعدة Firebase
+      const orderData = {
+        pharmacyName: pharmacyName,
+        pharmacyAddress: pharmacyAddress,
+        pharmacyPhone: pharmacyPhone,
+        pharmacyNotes: pharmacyNotes,
+        cart: cart.map(item => {
+          const product = products.find(p => p.id === item.id);
+          return {
+            name: product.name,
+            price: product.price,
+            quantity: item.quantity
+          };
+        }),
+        total: total,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      db.collection("orders").add(orderData)
+        .then(() => {
+          console.log("تم حفظ الطلب بنجاح في قاعدة البيانات.");
+        })
+        .catch(error => {
+          console.error("خطأ في حفظ الطلب:", error);
+        });
+
       if (whatsappWindow && !whatsappWindow.closed) {
         whatsappWindow.close();
       }
