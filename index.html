@@ -14,10 +14,10 @@
   <style>
     /* تعريف ألوان متجر كوزمتك */
     :root {
-      --primary-color: #7b034d;   /* وردي حيوي */
+      --primary-color: #ff009d;   /* وردي حيوي */
       --secondary-color: #e2098f; /* بنفسجي */
-      --accent-color: #f15489;    /* وردي فاتح */
-      --background: #FCE4EC;      /* خلفية وردية فاتحة */
+      --accent-color: #400023;    /* وردي فاتح */
+      --background: #ffffff;      /* خلفية وردية فاتحة */
       --sidebar-bg: #ffffff;
       --modal-bg: rgba(0, 0, 0, 0.7);
     }
@@ -681,13 +681,16 @@
       adminIcon.style.display = 'none';
       sidebar.appendChild(adminIcon);
   
-      // تحديث ظهور أيقونة الإدارة حسب حالة الشريط الجانبي
+      // دالة لتحديث ظهور أيقونة الإدارة بحسب حالة الشريط الجانبي
       function updateAdminIconVisibility() {
         adminIcon.style.display = sidebar.classList.contains('expanded') ? 'block' : 'none';
       }
+      
+      // مراقبة تغير صفات الشريط الجانبي لتحديث ظهور الأيقونة
       const observer = new MutationObserver(updateAdminIconVisibility);
       observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
-  
+      
+      // عند النقر على أيقونة الإدارة يتم طلب الرمز
       adminIcon.addEventListener('click', function(e){
         e.stopPropagation();
         const code = prompt("أدخل رمز الإدارة:");
@@ -699,7 +702,7 @@
       });
     })();
   
-    // إعدادات Firebase
+    // إعدادات Firebase الخاصة بمشروعك
     const firebaseConfig = {
       apiKey: "AIzaSyBcx6uXHzMK1HInEuFAmqsSBFvPAw86_Ts",
       authDomain: "mohmed-mod.firebaseapp.com",
@@ -712,33 +715,31 @@
     firebase.initializeApp(firebaseConfig);
     var db = firebase.firestore();
   
-    // تعريف معرف المتجر الحالي
-    const storeId = "متجر التجزئة";
+    // تحديد معرف المتجر الحالي، قم بتغيير القيمة حسب كل متجر
+    const storeId = "متجر تجزئة";
   
     // المتغيرات العامة
-    let products = [];
+    let products = [];  // ستُملأ المنتجات من قاعدة البيانات
     let cart = [];
     let savedProducts = JSON.parse(localStorage.getItem("savedProducts")) || [];
-    const mostSoldProductIds = ["2", "5", "7", "10"];
+    const mostSoldProductIds = ["2", "5", "7", "10"]; // معرّفات المنتجات (سلاسل)
   
-    // دالة تحميل المنتجات من Firebase مع التصفية حسب المتجر
+    // دالة تحميل المنتجات من Firestore مع تصفية حسب معرف المتجر
     function loadProducts() {
-      db.collection("products").where("store", "==", storeId).get()
-        .then(querySnapshot => {
-          products = [];
-          querySnapshot.forEach(doc => {
-            let product = doc.data();
-            product.id = doc.id;
-            products.push(product);
-          });
-          renderProducts();
-        })
-        .catch(error => {
-          console.error("Error fetching products: ", error);
+      db.collection("products").where("store", "==", storeId).get().then(querySnapshot => {
+        products = [];
+        querySnapshot.forEach(doc => {
+          let product = doc.data();
+          product.id = doc.id; // استخدام معرف الوثيقة
+          products.push(product);
         });
+        renderProducts();
+      }).catch(error => {
+        console.error("Error fetching products: ", error);
+      });
     }
   
-    // دالة عرض المنتجات
+    // دالة عرض المنتجات في الواجهة
     function renderProducts(productArray = products) {
       const grid = document.getElementById("product-grid");
       grid.innerHTML = "";
@@ -756,7 +757,9 @@
           <img src="${product.image}" alt="${product.name}" ondblclick="showImageModal('${product.image}')">
           <button class="save-btn ${isSaved(product.id) ? 'active' : ''}" onclick="toggleSave('${product.id}', this)">
             <svg viewBox="0 0 24 24">
-              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5
+                2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3
+                16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
             </svg>
           </button>
           <div class="card-body">
@@ -806,8 +809,10 @@
         } else {
           existing.quantity = currentQty;
         }
-      } else if (currentQty > 0) {
-        cart.push({ id: productId, quantity: currentQty });
+      } else {
+        if (currentQty > 0) {
+          cart.push({ id: productId, quantity: currentQty });
+        }
       }
     }
   
@@ -837,7 +842,6 @@
       modalOverlay.classList.add("active");
     }
   
-    // دالة عرض ملخص سلة الشراء
     function renderCartSummary() {
       if (cart.length === 0) {
         return `<div class="modal-header"><h4>سلة الشراء فارغة</h4></div>`;
@@ -859,7 +863,6 @@
       return html;
     }
   
-    // عرض نموذج معلومات الصيدلية
     function showPharmacyForm() {
       const dynamicContent = document.getElementById("modal-dynamic-content");
       dynamicContent.innerHTML = `
@@ -881,7 +884,6 @@
     }
   
     let whatsappWindow = null;
-    // دالة إرسال الطلب مع إرسال البيانات التي تظهر في لوحة الطلبات (الاسم، السعر، والكمية فقط)
     function sendOrder() {
       const pharmacyName = document.getElementById("pharmacy-name").value.trim();
       const pharmacyAddress = document.getElementById("pharmacy-address").value.trim();
@@ -922,8 +924,8 @@
       orderCount++;
       localStorage.setItem("orderCount", orderCount);
       document.getElementById("order-count").textContent = orderCount;
-  
-      // إرسال بيانات الطلب إلى Firebase مع الحقول المطلوبة فقط
+      
+      // حفظ بيانات الطلب في مجموعة "orders" بقاعدة Firebase
       const orderData = {
         pharmacyName: pharmacyName,
         pharmacyAddress: pharmacyAddress,
@@ -938,7 +940,6 @@
           };
         }),
         total: total,
-        status: "موافقة",
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       };
       db.collection("orders").add(orderData)
@@ -955,7 +956,6 @@
       whatsappWindow = window.open(url, "_blank");
     }
   
-    // دوال للمحفوظات والأكثر مبيعاً
     function openFavoritesModal() {
       const favModal = document.getElementById("favorites-modal");
       document.getElementById("favorites-content").innerHTML = renderFavorites();
@@ -1096,32 +1096,31 @@
     });
   
     /* وظائف لوحة الإدارة باستخدام Firebase */
+    // عرض المنتجات المُضافة في لوحة الإدارة مع تصفية حسب معرف المتجر
     function renderAdminProducts() {
-      db.collection("products").where("store", "==", storeId).get()
-        .then(querySnapshot => {
-          let html = "";
-          if(querySnapshot.empty) {
-            html = "<p>لا توجد منتجات مضافة.</p>";
-          } else {
-            querySnapshot.forEach(doc => {
-              const product = doc.data();
-              product.id = doc.id;
-              html += `<div class="product-list-item d-flex justify-content-between align-items-center">
-                <div>
-                  <strong>${product.name}</strong> - ${product.price} IQD
-                </div>
-                <div>
-                  <button class="btn btn-sm btn-warning" onclick="editProduct('${product.id}')">تعديل</button>
-                  <button class="btn btn-sm btn-danger" onclick="deleteProduct('${product.id}')">حذف</button>
-                </div>
-              </div>`;
-            });
-          }
-          document.getElementById("admin-product-list").innerHTML = html;
-        })
-        .catch(error => {
-          console.error("Error fetching admin products: ", error);
-        });
+      db.collection("products").where("store", "==", storeId).get().then(querySnapshot => {
+        let html = "";
+        if(querySnapshot.empty) {
+          html = "<p>لا توجد منتجات مضافة.</p>";
+        } else {
+          querySnapshot.forEach(doc => {
+            const product = doc.data();
+            product.id = doc.id;
+            html += `<div class="product-list-item d-flex justify-content-between align-items-center">
+              <div>
+                <strong>${product.name}</strong> - ${product.price} IQD
+              </div>
+              <div>
+                <button class="btn btn-sm btn-warning" onclick="editProduct('${product.id}')">تعديل</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteProduct('${product.id}')">حذف</button>
+              </div>
+            </div>`;
+          });
+        }
+        document.getElementById("admin-product-list").innerHTML = html;
+      }).catch(error => {
+        console.error("Error fetching admin products: ", error);
+      });
     }
   
     function editProduct(docId) {
@@ -1140,31 +1139,28 @@
         details: newDetails,
         price: parseFloat(newPrice),
         image: newImage.trim()
-      })
-      .then(() => {
+      }).then(() => {
         alert("تم تعديل المنتج");
         loadProducts();
         renderAdminProducts();
-      })
-      .catch(error => {
+      }).catch(error => {
         console.error("Error updating product: ", error);
       });
     }
   
     function deleteProduct(docId) {
       if(confirm("هل أنت متأكد من حذف هذا المنتج؟")) {
-        db.collection("products").doc(docId).delete()
-          .then(() => {
-            alert("تم حذف المنتج");
-            loadProducts();
-            renderAdminProducts();
-          })
-          .catch(error => {
-            console.error("Error deleting product: ", error);
-          });
+        db.collection("products").doc(docId).delete().then(() => {
+          alert("تم حذف المنتج");
+          loadProducts();
+          renderAdminProducts();
+        }).catch(error => {
+          console.error("Error deleting product: ", error);
+        });
       }
     }
   
+    // عند إرسال نموذج إضافة المنتج يتم إضافته إلى Firestore مع تحديد معرف المتجر
     document.getElementById("add-product-form").addEventListener("submit", function(e) {
       e.preventDefault();
       const name = document.getElementById("product-name").value.trim();
@@ -1181,7 +1177,7 @@
           store: storeId
         };
         db.collection("products").add(newProduct)
-          .then(() => {
+          .then(docRef => {
             alert("تم إضافة المنتج بنجاح");
             loadProducts();
             renderAdminProducts();
@@ -1195,13 +1191,14 @@
       }
     });
   
-    // زر الدخول للوحة الإدارة عبر الضغط السري
+    /* زر الدخول للوحة الإدارة عبر الضغط السري (خمس مرات أسفل أيقونة الهامبرجر) */
     let secretClickCount = 0;
     let secretClickTimer = null;
     document.getElementById("sidebar").addEventListener("click", function(e) {
       if(this.classList.contains("expanded")){
         const hamburger = document.getElementById("toggle-sidebar");
         const rect = hamburger.getBoundingClientRect();
+        // إذا كان النقر أسفل أيقونة الهامبرجر
         if(e.clientY > rect.bottom) {
           secretClickCount++;
           if(secretClickCount === 5) {
@@ -1216,18 +1213,20 @@
       }
     });
   
+    // عند تحميل الصفحة
     document.addEventListener("DOMContentLoaded", function() {
       loadProducts();
       renderAdminProducts();
       const memberCountEl = document.getElementById("member-count");
       if(memberCountEl) {
-        const count = 9 + 5040;
+        const count = 9 + 5000;
         memberCountEl.textContent = count;
       }
       const storedOrderCount = localStorage.getItem("orderCount") || "0";
       document.getElementById("order-count").textContent = storedOrderCount;
     });
   </script>
+  
   
   
   
